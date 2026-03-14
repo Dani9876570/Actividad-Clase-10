@@ -1,0 +1,59 @@
+### GET http://localhost:3000/
+GET http://localhost:3000/
+
+### GET http://localhost:3000/movies
+GET http://localhost:3000/movies
+
+### GET http://localhost:3000/movies?genre=romance
+GET http://localhost:3000/movies?genre=romance
+
+### GET http://localhost:3000/movies?genre=risa
+GET http://localhost:3000/movies?genre=risa
+
+### GET http://localhost:3000/movies?genre=[]
+GET http://localhost:3000/movies?genre=[]
+
+### GET http://localhost:3000/movies/691d155ff495554bfe5da433
+GET http://localhost:3000/movies/691d155ff495554bfe5da433
+
+### GET http://localhost:3000/movies/director/James%20Cameron
+GET http://localhost:3000/movies/director/James%20Cameron
+
+### POST http://localhost:3000/movies
+POST http://localhost:3000/movies
+content-type: application/json
+
+{
+  "title": "Avatar 3",
+  "year": 2027,
+  "director": "James Cameron",
+  "duration": 300,
+  "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
+  "genre": [
+    "Action",
+    "Adventure",
+    "Fantasy"
+  ]
+}
+
+### POST http://localhost:3000/movies # error de duracion
+POST http://localhost:3000/movies
+content-type: application/json
+
+{
+  "title": "Avatar 4",
+  "year": 2027,
+  "director": "James Cameron",
+  "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg"
+}
+
+### DELETE http://localhost:3000/movies/691d2193ea0c989094c29edc
+DELETE http://localhost:3000/movies/691d2193ea0c989094c29edc
+
+### PATCH http://localhost:3000/movies/691d2193ea0c989094c29edc
+PATCH http://localhost:3000/movies/691d213b1ba2ea92f355c9ce
+content-type: application/json
+
+{
+  "rate": 8
+}
