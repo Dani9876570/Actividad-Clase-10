@@ -3,45 +3,46 @@ const mongoose = require('mongoose')
 
 /**
  * 2. Definimos el Esquema (Schema) de la película.
- * El esquema dicta qué campos tendrá cada documento y de qué tipo serán.
+ * El esquema actúa como un "molde" o contrato que define la estructura de los datos.
  */
 const MovieSchema = new mongoose.Schema({
   title: {
-    type: String,   // Tipo de dato: Cadena de texto
-    required: true  // Es obligatorio para poder guardar la película
+    type: String,   // Define que el título debe ser una cadena de texto
+    required: true  // Mongoose rechazará el guardado si este campo falta
   },
   year: {
-    type: Number,   // Tipo de dato: Número (Año de estreno)
-    required: true  // Es obligatorio
+    type: Number,   // Año de estreno como valor numérico
+    required: true  // Obligatorio para mantener la integridad cronológica
   },
   director: {
-    type: String,   // Tipo de dato: Cadena de texto
-    required: true  // Es obligatorio
+    type: String,   // Nombre del director
+    required: true  // Obligatorio
   },
   duration: {
-    type: Number,   // Tipo de dato: Número (Duración en minutos)
-    required: true  // Es obligatorio
+    type: Number,   // Duración expresada en minutos
+    required: true  // Obligatorio (validamos esto en las pruebas POST)
   },
   poster: {
-    type: String,   // Tipo de dato: Cadena de texto (URL de la imagen)
-    required: false // No es obligatorio (opcional)
+    type: String,   // URL de la imagen (string)
+    required: false // Opcional: si no hay imagen, el documento se crea igual
   },
   genre: {
-    type: [String], // Tipo de dato: Un array (lista) de cadenas de texto
-    required: true  // Es obligatorio
+    type: [String], // Array de strings: permite guardar múltiples géneros (ej: ["Acción", "Sci-Fi"])
+    required: true  // Obligatorio: toda película debe tener al menos un género
   },
   rate: {
-    type: Number,   // Tipo de dato: Número (Calificación)
-    required: false, // Es opcional
-    default: 5      // Si no se envía una nota, por defecto se guarda como 5
+    type: Number,   // Calificación numérica
+    required: false, // Opcional: se puede calificar después (con el método PATCH)
+    default: 5      // Valor inicial automático si el usuario no proporciona uno
   }
 })
 
 /**
  * 3. Creamos el Modelo a partir del esquema.
- * 'Movie' será el nombre de la colección en la base de datos (se guardará como 'movies').
+ * Mongoose transformará 'Movie' automáticamente a minúsculas y plural ('movies') 
+ * para nombrar la colección en MongoDB.
  */
 const Movie = mongoose.model('Movie', MovieSchema)
 
-// 4. Exportamos el modelo dentro de un objeto para usarlo en los servicios (Services)
+// 4. Exportamos el modelo dentro de un objeto para que los Services puedan realizar el CRUD
 module.exports = { Movie }

@@ -1,99 +1,84 @@
 /**
  * Configuración de Swagger (OpenAPI 3.0)
- * Este objeto define cómo se verá y funcionará la documentación interactiva de tu API.
+ * Este objeto define cómo se verá y funcionará la documentación interactiva.
  */
 const swaggerDocument = {
-  openapi: '3.0.0', // Versión de la especificación OpenAPI
+  openapi: '3.0.0', // Especificación estándar para APIs REST
   
-  // 1. INFORMACIÓN GENERAL: Título, versión y descripción que aparecen arriba en la web
+  // 1. INFORMACIÓN GENERAL: Lo que el usuario lee al entrar a /api-docs
   info: {
     title: 'API de Películas',
     version: '1.0.0',
-    description: 'API REST para gestionar películas. Permite obtener, crear, actualizar y eliminar películas, así como filtrar por género y director.',
+    description: 'API REST para gestionar películas. Permite obtener, crear, actualizar y eliminar registros.',
     contact: {
-      name: 'Soporte API',
+      name: 'Daniela - Web Developer',
       email: 'support@example.com'
     }
   },
 
-  // 2. SERVIDORES: Define la URL base donde se ejecutan las pruebas
+  // 2. SERVIDORES: Configuración de URLs dinámicas
   servers: [
     {
-      url: 'http://localhost:3000',
-      description: 'Servidor de desarrollo'
+      // Si Railway nos da un dominio público, Swagger apuntará allí. 
+      // De lo contrario, usará localhost:3000 para tus pruebas locales.
+      url: process.env.RAILWAY_PUBLIC_DOMAIN 
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+        : 'http://localhost:3000',
+      description: process.env.RAILWAY_PUBLIC_DOMAIN ? 'Servidor de Producción (Railway)' : 'Servidor de Desarrollo (Local)'
     }
   ],
 
-  // 3. ETIQUETAS: Sirven para agrupar los endpoints visualmente
+  // 3. ETIQUETAS: Para agrupar los endpoints y que no sea una lista desordenada
   tags: [
     {
       name: 'Películas',
-      description: 'Endpoints para gestionar películas'
+      description: 'Operaciones CRUD sobre la colección de películas'
+    },
+    {
+      name: 'General',
+      description: 'Endpoints de utilidad y bienvenida'
     }
   ],
 
-  // 4. RUTAS (PATHS): Define cada una de las URLs que acepta tu API
+  // 4. RUTAS (PATHS): Mapeo de cada URL de tu aplicación
   paths: {
-    // Endpoint de prueba (Bienvenida)
     '/': {
       get: {
         tags: ['General'],
-        summary: 'Endpoint de bienvenida',
-        description: 'Retorna un mensaje de bienvenida',
+        summary: 'Verificar estado del servidor',
         responses: {
-          '200': {
-            description: 'Mensaje de bienvenida',
-            content: {
-              'text/plain': {
-                schema: {
-                  type: 'string',
-                  example: 'Hello World!'
-                }
-              }
-            }
-          }
+          '200': { description: 'Servidor en línea' }
         }
       }
     },
-
-    // Endpoints de Películas (GET y POST)
     '/movies': {
       get: {
         tags: ['Películas'],
-        summary: 'Obtener todas las películas',
-        description: 'Retorna una lista de todas las películas. Opcionalmente se puede filtrar por género usando el parámetro query `genre`.',
+        summary: 'Listar películas',
         parameters: [
           {
-            name: 'genre', // Parámetro en la URL (?genre=...)
-            in: 'query',
-            description: 'Filtrar películas por género',
+            name: 'genre',
+            in: 'query', // Indica que se usa como ?genre=Terror
+            description: 'Filtrar por género cinematográfico',
             required: false,
-            schema: {
-              type: 'string',
-              example: 'Action'
-            }
+            schema: { type: 'string' }
           }
         ],
         responses: {
           '200': {
-            description: 'Lista de películas obtenida exitosamente',
+            description: 'Éxito',
             content: {
               'application/json': {
-                schema: {
-                  type: 'array',
-                  items: { $ref: '#/components/schemas/Movie' } // Referencia al modelo Movie
-                }
+                schema: { type: 'array', items: { $ref: '#/components/schemas/Movie' } }
               }
             }
-          },
-          '404': { description: 'No se encontraron películas' }
+          }
         }
       },
       post: {
         tags: ['Películas'],
-        summary: 'Crear una nueva película',
-        description: 'Crea una nueva película en la base de datos',
-        requestBody: { // Define los datos que el cliente debe enviar
+        summary: 'Agregar película',
+        requestBody: {
           required: true,
           content: {
             'application/json': {
@@ -101,112 +86,63 @@ const swaggerDocument = {
             }
           }
         },
-        responses: {
-          '201': { description: 'Película creada exitosamente' },
-          '400': { description: 'Error de validación' }
-        }
+        responses: { '201': { description: 'Creada correctamente' } }
       }
     },
-
-    // Endpoints que requieren ID (/movies/{id})
     '/movies/{id}': {
+      // Rutas que requieren un parámetro de ID en la URL
       get: {
         tags: ['Películas'],
-        summary: 'Obtener película por ID',
-        parameters: [
-          {
-            name: 'id',
-            in: 'path', // Indica que es parte de la ruta
-            required: true,
-            schema: { type: 'string' }
-          }
-        ],
-        responses: { '200': { description: 'Encontrada' } }
+        summary: 'Buscar por ID',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: { '200': { description: 'Película encontrada' } }
       },
-      patch: { // Actualización parcial
+      patch: {
         tags: ['Películas'],
-        summary: 'Actualizar una película',
-        parameters: [
-          { name: 'id', in: 'path', required: true }
-        ],
+        summary: 'Actualizar parcialmente',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/MovieUpdate' }
-            }
-          }
-        ],
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/MovieUpdate' } } }
+        },
         responses: { '200': { description: 'Actualizada' } }
       },
       delete: {
         tags: ['Películas'],
-        summary: 'Eliminar una película',
-        parameters: [
-          { name: 'id', in: 'path', required: true }
-        ],
+        summary: 'Borrar película',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
         responses: { '200': { description: 'Eliminada' } }
-      }
-    },
-
-    // Endpoint específico para filtrar por director
-    '/movies/director/{director}': {
-      get: {
-        tags: ['Películas'],
-        summary: 'Obtener películas por director',
-        parameters: [
-          {
-            name: 'director',
-            in: 'path',
-            required: true,
-            schema: { type: 'string' }
-          }
-        ],
-        responses: { '200': { description: 'Lista del director' } }
       }
     }
   },
 
-  // 5. COMPONENTES: Definición de esquemas de datos reutilizables
+  // 5. COMPONENTES: Definición de los "moldes" de datos (Schemas)
   components: {
     schemas: {
-      // Modelo completo de la base de datos
       Movie: {
         type: 'object',
-        required: ['title', 'year', 'director', 'duration', 'genre'],
         properties: {
           _id: { type: 'string' },
           title: { type: 'string' },
-          year: { type: 'number', minimum: 1888 },
+          year: { type: 'number' },
           director: { type: 'string' },
           duration: { type: 'number' },
-          poster: { type: 'string', format: 'uri' },
           genre: { type: 'array', items: { type: 'string' } },
-          rate: { type: 'number', minimum: 0, maximum: 10, default: 5 }
+          rate: { type: 'number' }
         }
       },
-      // Modelo para creación (Input del usuario)
       MovieInput: {
         type: 'object',
         required: ['title', 'year', 'director', 'duration', 'genre'],
-        properties: { /* campos similares a Movie */ }
-      },
-      // Modelo para actualización (campos opcionales)
-      MovieUpdate: {
-        type: 'object',
-        properties: { /* campos similares a Movie */ }
-      },
-      // Modelo estándar para mensajes de error
-      Error: {
-        type: 'object',
         properties: {
-          message: { type: 'string' }
+          title: { type: 'string' },
+          year: { type: 'number' },
+          director: { type: 'string' },
+          duration: { type: 'number' },
+          genre: { type: 'array', items: { type: 'string' } }
         }
       }
     }
   }
 }
 
-// Exportamos el objeto para ser usado por swaggerUI en el index principal
 module.exports = swaggerDocument
-

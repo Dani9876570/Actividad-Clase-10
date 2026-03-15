@@ -1,35 +1,36 @@
-// 1. Importamos Express para acceder a su sistema de rutas
+// 1. Importamos Express para acceder a su sistema de rutas.
 const express = require('express')
 
-// 2. Creamos una instancia del Router de Express
+// 2. Creamos una instancia del Router de Express.
+// Esto permite que este archivo sea un "módulo" de rutas independiente.
 const router = express.Router()
 
-// 3. Importamos el controlador de películas que contiene las funciones (lógica)
+// 3. Importamos el controlador. 
+// Aquí es donde reside la lógica que conecta las rutas con la base de datos (vía el modelo).
 const movieController = require('../controllers/movieController.js')
 
 /**
  * DEFINICIÓN DE ENDPOINTS (RUTAS)
- * Nota: El prefijo "/movies" ya viene definido desde el index de rutas principal.
+ * Recordatorio: Estas rutas son relativas al prefijo '/movies' definido en routes/index.js.
  */
 
-// Obtiene todas las películas (GET /movies)
+// GET /movies -> Llama a la función que trae el listado completo (o filtrado por género).
 router.get('/', movieController.getMovies)
 
-// Obtiene una película específica por su ID (GET /movies/:id)
+// GET /movies/:id -> El ":id" es un parámetro dinámico que el controlador usará para buscar en Atlas.
 router.get('/:id', movieController.getMovieById)
 
-// Obtiene películas filtradas por el nombre del director (GET /movies/director/:nombre)
+// GET /movies/director/:director -> Permite búsquedas específicas por el nombre del director.
 router.get('/director/:director', movieController.getMoviesByDirector)
 
-// Crea una nueva película (POST /movies)
+// POST /movies -> Recibe los datos del body para crear un nuevo documento en la colección.
 router.post('/', movieController.createMovie)
 
-// Elimina una película por su ID (DELETE /movies/:id)
+// DELETE /movies/:id -> Elimina de forma permanente el documento que coincida con el ID.
 router.delete('/:id', movieController.deleteMovie)
 
-// Actualiza parcialmente una película (PATCH /movies/:id)
-// Nota: Usas PATCH en lugar de PUT, lo cual es correcto para actualizaciones parciales.
+// PATCH /movies/:id -> Actualización parcial (ideal para modificar solo el 'rate').
 router.patch('/:id', movieController.updateMovie)
 
-// 4. Exportamos este ruteador para que sea usado por el enrutador principal
+// 4. Exportamos este ruteador para integrarlo en el index.js de la carpeta routes.
 module.exports = router

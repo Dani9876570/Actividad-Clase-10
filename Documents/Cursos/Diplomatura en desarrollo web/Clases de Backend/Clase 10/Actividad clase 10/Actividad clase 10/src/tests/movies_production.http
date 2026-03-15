@@ -1,0 +1,55 @@
+# CONFIGURACIÓN DE PRODUCCIÓN - RAILWAY
+@baseUrl = https://actividad-clase-10-production.up.railway.app
+
+### 1. PROBAR CONEXIÓN (HOME)
+GET {{baseUrl}}/
+
+### 2. OBTENER TODAS LAS PELÍCULAS
+GET {{baseUrl}}/movies
+
+### 3. FILTRAR POR GÉNERO
+GET {{baseUrl}}/movies?genre=romance
+
+### 4. OBTENER POR ID
+# Nota: Asegúrate de usar un ID que exista en tu base de Railway
+GET {{baseUrl}}/movies/691d155ff495554bfe5da433
+
+### 5. OBTENER POR DIRECTOR
+GET {{baseUrl}}/movies/director/James%20Cameron
+
+### 6. CREAR PELÍCULA (POST)
+POST {{baseUrl}}/movies
+Content-Type: application/json
+
+{
+  "title": "Avatar 3",
+  "year": 2027,
+  "director": "James Cameron",
+  "duration": 300,
+  "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
+  "genre": ["Action", "Adventure", "Fantasy"]
+}
+
+### 7. PROBAR ERROR DE VALIDACIÓN
+POST {{baseUrl}}/movies
+Content-Type: application/json
+
+{
+  "title": "Avatar 4",
+  "year": 2027,
+  "director": "James Cameron",
+  "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg"
+}
+
+### 8. ELIMINAR PELÍCULA (DELETE)
+# Cambia el ID por uno real de tu base de datos
+DELETE {{baseUrl}}/movies/691d2193ea0c989094c29edc
+
+### 9. ACTUALIZAR RATING (PATCH)
+# Cambia el ID por uno real de tu base de datos
+PATCH {{baseUrl}}/movies/691d213b1ba2ea92f355c9ce
+Content-Type: application/json
+
+{
+  "rate": 8
+}

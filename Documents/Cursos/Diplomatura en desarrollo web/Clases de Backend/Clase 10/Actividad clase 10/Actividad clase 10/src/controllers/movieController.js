@@ -11,12 +11,7 @@
  * schemas:
  * Movie:
  * type: object
- * required:
- * - title
- * - year
- * - director
- * - duration
- * - genre
+ * required: [title, year, director, duration, genre]
  * properties:
  * _id:
  * type: string
@@ -46,166 +41,43 @@
  * type: number
  * default: 5
  * description: Calificación (por defecto 5)
- * example:
- * _id: "64af98e7c4f5c93bd877ad44"
- * title: "Inception"
- * year: 2010
- * director: "Christopher Nolan"
- * duration: 148
- * poster: "https://image.url/inception.jpg"
- * genre: ["Sci-Fi", "Thriller"]
- * rate: 5
- *
- * MovieInput:
- * type: object
- * description: Datos necesarios para crear una película
- * required:
- * - title
- * - year
- * - director
- * - duration
- * - genre
- * properties:
- * title:
- * type: string
- * description: Título de la película
- * year:
- * type: integer
- * description: Año de lanzamiento
- * director:
- * type: string
- * description: Director de la película
- * duration:
- * type: integer
- * description: Duración en minutos
- * poster:
- * type: string
- * nullable: true
- * description: URL del póster (opcional)
- * genre:
- * type: array
- * items:
- * type: string
- * description: Lista de géneros
- * rate:
- * type: number
- * description: Calificación inicial (opcional)
- * example:
- * title: "Interstellar"
- * year: 2014
- * director: "Christopher Nolan"
- * duration: 169
- * poster: "https://image.url/interstellar.jpg"
- * genre: ["Sci-Fi", "Adventure"]
- * rate: 5
- *
- * MovieUpdate:
- * type: object
- * description: Datos permitidos para actualizar una película
- * properties:
- * title:
- * type: string
- * description: Título de la película
- * year:
- * type: integer
- * description: Año de lanzamiento
- * director:
- * type: string
- * description: Director de la película
- * duration:
- * type: integer
- * description: Duración en minutos
- * poster:
- * type: string
- * nullable: true
- * description: URL del póster
- * genre:
- * type: array
- * items:
- * type: string
- * description: Lista de géneros
- * rate:
- * type: number
- * description: Calificación actualizada
- * example:
- * duration: 150
- * genre: ["Sci-Fi"]
- * rate: 4
  */
 
-// Importación del servicio que maneja la lógica de la base de datos
+// Importación del servicio que maneja la lógica y comunicación con la DB
 const movieService = require('../services/movieService.js')
 
-// Objeto controlador que agrupa todos los métodos de las rutas de películas
+// Objeto controlador que agrupa los métodos que se asocian a cada ruta (endpoint)
 const movieController = {
 
   /**
-   * Obtiene todas las películas, permitiendo un filtro opcional por género vía Query String.
-   */
-  /**
-   * @swagger
-   * /movies:
-   * get:
-   * summary: Obtiene todas las películas
-   * tags: [Movies]
-   * parameters:
-   * - in: query
-   * name: genre
-   * schema:
-   * type: string
-   * description: Género para filtrar las películas
-   * responses:
-   * 200:
-   * description: Lista de películas
-   * content:
-   * application/json:
-   * schema:
-   * type: array
-   * items:
-   * $ref: '#/components/schemas/Movie'
-   * 404:
-   * description: No se encontraron películas
-   * 500:
-   * description: Error del servidor
+   * Obtiene todas las películas. Soporta filtro opcional por género mediante Query String (?genre=Drama).
    */
   getMovies: async (req, res, next) => {
+    // 1. Extraemos el género de la query si existe
     const { genre } = req.query
     try {
+      // 2. Llamamos al servicio para obtener los datos
       const movies = await movieService.getMovies(genre)
+      
+      // 3. Si la lista está vacía, respondemos con un 404. Si no, con un 200 y los datos.
       return movies.length === 0
         ? res.status(404).json({ message: 'No se encontraron peliculas' })
         : res.status(200).json(movies)
     } catch (error) {
+      // 4. Si hay un error, lo enviamos al middleware global (errorHandler)
       next(error)
     }
   },
 
   /**
-   * Obtiene una sola película buscando por su ID único.
-   */
-  /**
-   * @swagger
-   * /movies/{id}:
-   * get:
-   * summary: Obtiene una película por ID
-   * tags: [Movies]
-   * parameters:
-   * - in: path
-   * name: id
-   * schema:
-   * type: string
-   * required: true
-   * description: ID de la película
-   * responses:
-   * 200:
-   * description: Película encontrada
-   * 404:
-   * description: Película no encontrada
+   * Obtiene una sola película buscando por su ID único pasado en la URL.
    */
   getMovieById: async (req, res, next) => {
     const { id } = req.params
     try {
       const movie = await movieService.getMovieById(id)
+      
+      // Validamos si la película existe en la base de datos
       return !movie
         ? res.status(404).json({ message: 'No se encontro la pelicula' })
         : res.status(200).json(movie)
@@ -215,28 +87,14 @@ const movieController = {
   },
 
   /**
-   * Obtiene todas las películas asociadas a un director específico pasado por parámetro.
-   */
-  /**
-   * @swagger
-   * /movies/director/{director}:
-   * get:
-   * summary: Obtiene películas por director
-   * tags: [Movies]
-   * parameters:
-   * - in: path
-   * name: director
-   * required: true
-   * responses:
-   * 200:
-   * description: Lista de películas del director
+   * Obtiene todas las películas de un director específico.
    */
   getMoviesByDirector: async (req, res, next) => {
     const { director } = req.params
     try {
       const movies = await movieService.getMoviesByDirector(director)
       return movies.length === 0
-        ? res.status(404).json({ message: 'No se encontraron peliculas' })
+        ? res.status(404).json({ message: 'No se encontraron peliculas de este director' })
         : res.status(200).json(movies)
     } catch (error) {
       next(error)
@@ -244,54 +102,31 @@ const movieController = {
   },
 
   /**
-   * Crea un nuevo registro de película con los datos enviados en el cuerpo (body) de la petición.
-   */
-  /**
-   * @swagger
-   * /movies:
-   * post:
-   * summary: Crea una nueva película
-   * tags: [Movies]
-   * requestBody:
-   * required: true
-   * content:
-   * application/json:
-   * schema:
-   * $ref: '#/components/schemas/MovieInput'
-   * responses:
-   * 201:
-   * description: Película creada exitosamente
+   * Crea un nuevo registro de película.
+   * Recibe los datos desde el body de la petición (POST).
    */
   createMovie: async (req, res, next) => {
     try {
+      // Intentamos crear la película a través del servicio
       const insertedMovie = await movieService.createMovie(req.body)
+      
+      // Respondemos con código 201 (Created) y el objeto recién creado
       res.status(201).json(insertedMovie)
     } catch (error) {
+      // Si el servicio lanza un error de validación, cae aquí y va al errorHandler
       next(error)
     }
   },
 
   /**
-   * Elimina una película de la base de datos según el ID proporcionado.
-   */
-  /**
-   * @swagger
-   * /movies/{id}:
-   * delete:
-   * summary: Elimina una película
-   * tags: [Movies]
-   * parameters:
-   * - in: path
-   * name: id
-   * required: true
-   * responses:
-   * 200:
-   * description: Película eliminada
+   * Elimina una película basándose en su ID.
    */
   deleteMovie: async (req, res, next) => {
     const { id } = req.params
     try {
       const deletedMovie = await movieService.deleteMovie(id)
+      
+      // Informamos que la operación fue exitosa (200 OK)
       res.status(200).json({ message: 'Movie deleted', deletedMovie })
     } catch (error) {
       next(error)
@@ -299,34 +134,15 @@ const movieController = {
   },
 
   /**
-   * Actualiza parcialmente o totalmente una película existente.
-   */
-  /**
-   * @swagger
-   * /movies/{id}:
-   * put:
-   * summary: Actualiza una película existente
-   * tags: [Movies]
-   * parameters:
-   * - in: path
-   * name: id
-   * required: true
-   * requestBody:
-   * required: true
-   * content:
-   * application/json:
-   * schema:
-   * $ref: '#/components/schemas/MovieUpdate'
-   * responses:
-   * 200:
-   * description: Película actualizada
-   * 404:
-   * description: Película no encontrada
+   * Actualiza los datos de una película existente.
    */
   updateMovie: async (req, res, next) => {
     const { id } = req.params
     try {
+      // Enviamos el ID y los nuevos datos (body) al servicio
       const updatedMovie = await movieService.updateMovie(id, req.body)
+      
+      // Si el ID no existía, avisamos con un 404
       if (!updatedMovie) {
         res.status(404).json({ message: 'Movie not found' })
       } else {
@@ -338,5 +154,5 @@ const movieController = {
   }
 }
 
-// Exportación del objeto controlador para ser usado en las rutas de Express
+// Exportamos el controlador para que movieRoutes.js pueda usar estas funciones
 module.exports = movieController

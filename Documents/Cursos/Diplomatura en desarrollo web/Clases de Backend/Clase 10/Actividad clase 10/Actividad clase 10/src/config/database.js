@@ -1,42 +1,48 @@
-// Importa el módulo mongoose para interactuar con la base de datos MongoDB
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-// Define una función asíncrona para manejar la conexión
+// Definimos la función asíncrona para conectar a la base de datos
 const connectDB = async () => {
   try {
-    // Determina el entorno actual (desarrollo por defecto si no está definido)
-    const ENV = process.env.NODE_ENV || 'development'
-    
-    /* Comentado: Forma antigua usando la librería externa dotenv
-       const dotenv = require('dotenv')
-       dotenv.config({ path: `.env.${ENV}` }) */
-    
-    // Carga el archivo de variables de entorno correspondiente de forma nativa (Node 20.6+)
-    process.loadEnvFile(`.env.${ENV}`) 
+    // 1. Detectamos el entorno (por defecto 'development')
+    const ENV = process.env.NODE_ENV || 'development';
 
-    // Extrae las variables necesarias del objeto process.env mediante destructuración
-    const { DB_PROTOCOL, DB_HOST, DB_PASS, DB_USER, DB_OPTIONS, DB_NAME } =
-      process.env;
+    // 2. Carga dinámica de archivos .env
+    try {
+      // Modificamos esta condición para que acepte tanto 'development' como 'local_railway'
+      if (ENV === 'development' || ENV === 'local_railway') {
+        process.loadEnvFile(`.env.${ENV}`);
+        console.log(`Configuración cargada desde: .env.${ENV}`);
+      }
+    } catch (e) {
+      // En Railway (producción), no habrá archivos .env locales, así que usará las variables del panel
+      console.log('Utilizando variables de entorno del sistema/producción');
+    }
 
-    // Crea la cadena de conexión (URI). Si es 'development', concatena el nombre de la BD
-    const MONGODB_URI = ENV === 'development'
-      ? `${DB_PROTOCOL}://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}`
-      : `${DB_PROTOCOL}://${DB_USER}:${DB_PASS}@${DB_HOST}`
+    // 3. Extraemos las variables del entorno (ya sea del archivo .env o del panel de Railway)
+    const { DB_PROTOCOL, DB_HOST, DB_PASS, DB_USER, DB_OPTIONS, DB_NAME } = process.env;
 
-    // Intenta realizar la conexión a MongoDB usando la URI generada
-    await mongoose.connect(MONGODB_URI)
+    // 4. Limpieza de variables (evita que valores undefined rompan la URL)
+    const protocol = DB_PROTOCOL || 'mongodb+srv';
+    const user = DB_USER || '';
+    const pass = DB_PASS || '';
+    const host = DB_HOST || '';
+    const dbName = DB_NAME || 'test';
+    const options = DB_OPTIONS || '';
 
-    // Si la conexión tiene éxito, lo informa en la consola
-    console.log('Conectado a la base de datos')
+    // 5. Construcción de la URI de conexión
+    // Estructura: protocolo://usuario:contraseña@host/nombre_bd?opciones
+    const MONGODB_URI = `${protocol}://${user}:${pass}@${host}/${dbName}${options}`;
+
+    // 6. Intentamos la conexión con Mongoose
+    await mongoose.connect(MONGODB_URI);
+
+    console.log(`✅ Conectado a la base de datos: ${dbName} (Entorno: ${ENV})`);
 
   } catch (error) {
-    // Si ocurre un error en el bloque try, se captura y se informa aquí
-    console.log('Error al conectarrse a la BD')
-    
-    // Lanza el error para que pueda ser manejado por quien llame a esta función
-    throw error
+    console.log('❌ Error al conectarse a la BD:', error.message);
+    // Lanzamos el error para que el proceso se detenga si no hay base de datos
+    process.exit(1); 
   }
 }
 
-// Exporta la función para que pueda ser utilizada en otros archivos del proyecto
-module.exports = connectDB
+module.exports = connectDB;

@@ -1,27 +1,25 @@
-### GET http://localhost:3000/
+### 1. Endpoint de Bienvenida
 GET http://localhost:3000/
 
-### GET http://localhost:3000/movies
+### 2. Obtener todas las películas
 GET http://localhost:3000/movies
 
-### GET http://localhost:3000/movies?genre=romance
+### 3. Filtrar por género (Romance)
 GET http://localhost:3000/movies?genre=romance
 
-### GET http://localhost:3000/movies?genre=risa
+### 4. Filtrar por género (Risa - Prueba de 404 si no existe)
 GET http://localhost:3000/movies?genre=risa
 
-### GET http://localhost:3000/movies?genre=[]
-GET http://localhost:3000/movies?genre=[]
-
-### GET http://localhost:3000/movies/691d155ff495554bfe5da433
+### 5. Obtener una película por ID
+# Asegúrate de que este ID exista en tu DB local
 GET http://localhost:3000/movies/691d155ff495554bfe5da433
 
-### GET http://localhost:3000/movies/director/James%20Cameron
+### 6. Obtener películas por director
 GET http://localhost:3000/movies/director/James%20Cameron
 
-### POST http://localhost:3000/movies
+### 7. Crear una película (ÉXITO)
 POST http://localhost:3000/movies
-content-type: application/json
+Content-Type: application/json
 
 {
   "title": "Avatar 3",
@@ -29,16 +27,12 @@ content-type: application/json
   "director": "James Cameron",
   "duration": 300,
   "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg",
-  "genre": [
-    "Action",
-    "Adventure",
-    "Fantasy"
-  ]
+  "genre": ["Action", "Adventure", "Fantasy"]
 }
 
-### POST http://localhost:3000/movies # error de duracion
+### 8. Crear película (ERROR: Falta duración/género)
 POST http://localhost:3000/movies
-content-type: application/json
+Content-Type: application/json
 
 {
   "title": "Avatar 4",
@@ -47,12 +41,13 @@ content-type: application/json
   "poster": "https://i.etsystatic.com/35681979/r/il/dfe3ba/3957859451/il_fullxfull.3957859451_h27r.jpg"
 }
 
-### DELETE http://localhost:3000/movies/691d2193ea0c989094c29edc
+### 9. Eliminar una película
 DELETE http://localhost:3000/movies/691d2193ea0c989094c29edc
 
-### PATCH http://localhost:3000/movies/691d2193ea0c989094c29edc
+### 10. Actualizar el rating (PATCH)
+# Corregido: ID único en la URL y espacio antes del JSON
 PATCH http://localhost:3000/movies/691d213b1ba2ea92f355c9ce
-content-type: application/json
+Content-Type: application/json
 
 {
   "rate": 8
