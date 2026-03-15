@@ -1,35 +1,37 @@
-// 1. Importamos Express para acceder a su sistema de rutas
-const express = require('express')
+// 1. Importación de Express y el enrutador
+const express = require('express');
+const router = express.Router();
 
-// 2. Creamos una instancia del Router de Express
-const router = express.Router()
-
-// 3. Importamos el controlador de películas que contiene las funciones (lógica)
-const movieController = require('../controllers/movieController.js')
+// 2. Importación del controlador de películas
+const movieController = require('../controllers/movieController.js');
 
 /**
- * DEFINICIÓN DE ENDPOINTS (RUTAS)
- * Nota: El prefijo "/movies" ya viene definido desde el index de rutas principal.
+ * =============================================================================
+ * DEFINICIÓN DE RUTAS PARA PELÍCULAS
+ * =============================================================================
  */
 
-// Obtiene todas las películas (GET /movies)
-router.get('/', movieController.getMovies)
+// Obtener todas las películas (con filtro opcional ?genre=...)
+router.get('/', movieController.getMovies);
 
-// Obtiene una película específica por su ID (GET /movies/:id)
-router.get('/:id', movieController.getMovieById)
+// Obtener películas de un director específico
+router.get('/director/:director', movieController.getMoviesByDirector);
 
-// Obtiene películas filtradas por el nombre del director (GET /movies/director/:nombre)
-router.get('/director/:director', movieController.getMoviesByDirector)
+// Obtener una película por su ID único
+router.get('/:id', movieController.getMovieById);
 
-// Crea una nueva película (POST /movies)
-router.post('/', movieController.createMovie)
+// Crear una nueva película (POST)
+router.post('/', movieController.createMovie);
 
-// Elimina una película por su ID (DELETE /movies/:id)
-router.delete('/:id', movieController.deleteMovie)
+// Actualización TOTAL (PUT): Se espera que envíes todo el objeto
+router.put('/:id', movieController.updateMovie);
 
-// Actualiza parcialmente una película (PATCH /movies/:id)
-// Nota: Usas PATCH en lugar de PUT, lo cual es correcto para actualizaciones parciales.
-router.patch('/:id', movieController.updateMovie)
+// Actualización PARCIAL (PATCH): Ideal para actualizar solo el 'rate' o un campo suelto
+// Este es el que necesitabas para que tu api.http funcione correctamente
+router.patch('/:id', movieController.updateMovie);
 
-// 4. Exportamos este ruteador para que sea usado por el enrutador principal
-module.exports = router
+// Eliminar una película (DELETE)
+router.delete('/:id', movieController.deleteMovie);
+
+// Exportamos las rutas para que el index principal las use
+module.exports = router;
