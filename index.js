@@ -1,83 +1,36 @@
-// 1. Importaciones de módulos locales (rutas, base de datos y middleware de errores)
-const routes = require('./src/routes/index.js')
-const connectDB = require('./src/config/database.js')
+// 1. Importamos las rutas principales desde la carpeta src
+const routes = require('./src/routes/index.js');
+// 2. Importamos la función que conecta a la base de datos MongoDB
+const connectDB = require('./src/config/database.js');
+// 3. Importamos el framework Express
+const express = require('express');
+// 4. Creamos la aplicación de Express
+const app = express();
+// 5. Definimos el puerto (usamos el de Railway o el 3000 por defecto)
+const port = process.env.PORT || 3000;
+// 6. Importamos el "atajador" de errores que vive en middlewares
+const errorHandler = require('./src/middlewares/errorHandler.js');
+// 7. Importamos las herramientas de Swagger para la documentación
+const swaggerUI = require('swagger-ui-express');
+// 8. Importamos la configuración específica de Swagger
+const swaggerDocument = require('./swagger.config.js');
 
-// 2. Importación de Express y creación de la instancia de la aplicación
-const express = require('express')
-const app = express()
+// 9. Middleware para que el servidor entienda datos en formato JSON
+app.use(express.json());
+// 10. Configuramos la ruta donde se verá la documentación (/api-docs)
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+// 11. Conectamos las rutas: todas las peticiones pasan por el archivo de rutas
+app.use('/', routes);
+// 12. Middleware de errores: SIEMPRE va al final para capturar fallos de las rutas
+app.use(errorHandler);
 
-// 3. Definición del puerto: usa la variable de entorno de Railway/hosting o el 3000 por defecto
-const port = process.env.PORT || 3000
-
-// 4. Importación del middleware personalizado para capturar y gestionar errores
-const errorHandler = require('./src/middlewares/errorHandler.js')
-
-// 5. Importaciones para la documentación automática con Swagger
-const swaggerJSDoc = require('swagger-jsdoc')
-const swaggerUI = require('swagger-ui-express')
-const swaggerDocument = require('./swagger.config.js')
-
-
-// Bloque de configuración manual de Swagger (actualmente comentado porque usas swaggerDocument)
-/* const SwaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'API de Peliculas',
-      version: '1.0.0',
-      description: 'API REST para gestionar películas...',
-      license: {
-        name: 'MIT',
-        url: 'https://opensource.org/licenses/MIT',
-      },
-      contact: {
-        email: 'ing.fabio.arg@gmail.com',
-        name: 'Fabio D. Argañaraz',
-        url: 'https://fabiodrizzt.vercel.app/',
-      },
-    },
-    servers: [
-      {
-        url: 'http://localhost:3000',
-        description: 'Servidor local',
-      },
-    ],
-    tags: [
-      {
-        name: 'peliculas',
-        description: 'Operaciones CRUD para películas',
-      },
-      {
-        name: 'directores',
-        description: 'Operaciones CRUD para directores',
-      }
-    ],
-    basePath: '/',
-  },
-  apis: ['./swagger.jsdoc.js', './src/controllers/*.js'],
-}
-
-const swaggerSpec = swaggerJSDoc(SwaggerOptions) */
-
-// 6. Middleware para que el servidor pueda interpretar datos en formato JSON (en el body de las peticiones)
-app.use(express.json())
-
-// 7. Configuración de la ruta visual para la documentación Swagger
-// Se accede a través de /api-docs y usa la configuración de swaggerDocument
-app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument))
-
-// 8. Registro de las rutas principales de la aplicación
-app.use('/', routes)
-
-// 9. Registro del middleware de errores (debe ir después de las rutas para capturarlos)
-app.use(errorHandler)
-
-// 10. Puesta en marcha del servidor
+// 13. Encendemos el servidor y conectamos la DB
 app.listen(port, async () => {
-  // Llama a la función que conecta con MongoDB antes de terminar de subir el servidor
-  await connectDB()
-  
-  // Muestra en consola las rutas de acceso para desarrollo
-  console.log(`http://localhost:${port}`)
-  console.log(`Documentación Swagger en: http://localhost:${port}/api-docs`)
-})
+  try {
+    await connectDB(); // Esperamos a que la base de datos conecte
+    console.log(`✅ Servidor en: http://localhost:${port}`);
+    console.log(`📄 Swagger en: http://localhost:${port}/api-docs`);
+  } catch (error) {
+    console.error('❌ Error al iniciar:', error);
+  }
+});
