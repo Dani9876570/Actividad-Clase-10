@@ -1,36 +1,53 @@
-// 1. Importamos las rutas principales desde la carpeta src
+// 1. CONFIGURACIÓN DE VARIABLES DE ENTORNO
+const dotenv = require('dotenv');
+
+// Determinamos qué entorno usar (por defecto 'development')
+const ambiente = process.env.NODE_ENV || 'development';
+
+/**
+ * Lógica para elegir el archivo .env según tus imágenes:
+ * - Si es 'development', usará .env.development
+ * - Si es 'production', usará .env.production
+ * - Si es 'railway', usará .env.local_railway
+ */
+let nombreArchivoEnv = `.env.${ambiente}`;
+
+if (ambiente === 'railway') {
+    nombreArchivoEnv = '.env.local_railway';
+}
+
+// Cargamos el archivo seleccionado
+dotenv.config({ path: nombreArchivoEnv });
+
+console.log(`🌍 Cargando configuración desde: ${nombreArchivoEnv}`);
+
+// 2. IMPORTACIONES
 const routes = require('./src/routes/index.js');
-// 2. Importamos la función que conecta a la base de datos MongoDB
 const connectDB = require('./src/config/database.js');
-// 3. Importamos el framework Express
 const express = require('express');
-// 4. Creamos la aplicación de Express
 const app = express();
-// 5. Definimos el puerto (usamos el de Railway o el 3000 por defecto)
 const port = process.env.PORT || 3000;
-// 6. Importamos el "atajador" de errores que vive en middlewares
+
+// 3. MIDDLEWARES
 const errorHandler = require('./src/middlewares/errorHandler.js');
-// 7. Importamos las herramientas de Swagger para la documentación
 const swaggerUI = require('swagger-ui-express');
-// 8. Importamos la configuración específica de Swagger
 const swaggerDocument = require('./swagger.config.js');
 
-// 9. Middleware para que el servidor entienda datos en formato JSON
 app.use(express.json());
-// 10. Configuramos la ruta donde se verá la documentación (/api-docs)
+
+// 4. RUTAS Y DOCUMENTACIÓN
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument));
-// 11. Conectamos las rutas: todas las peticiones pasan por el archivo de rutas
 app.use('/', routes);
-// 12. Middleware de errores: SIEMPRE va al final para capturar fallos de las rutas
 app.use(errorHandler);
 
-// 13. Encendemos el servidor y conectamos la DB
+// 5. INICIO DEL SERVIDOR
 app.listen(port, async () => {
   try {
-    await connectDB(); // Esperamos a que la base de datos conecte
-    console.log(`✅ Servidor en: http://localhost:${port}`);
-    console.log(`📄 Swagger en: http://localhost:${port}/api-docs`);
+    // Aquí es donde se usa la MONGO_URI de tu archivo .env seleccionado
+    await connectDB();
+    console.log(`✅ Servidor corriendo en puerto: ${port}`);
+    console.log(`📄 Documentación: http://localhost:${port}/api-docs`);
   } catch (error) {
-    console.error('❌ Error al iniciar:', error);
+    console.error('❌ Error fatal al iniciar:', error.message);
   }
 });
